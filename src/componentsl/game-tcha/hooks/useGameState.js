@@ -5,7 +5,7 @@ import { checkCollisions } from '../utils/collisionDetection';
 
 const INITIAL_STATE = {
   score: 0,
-  timeLeft: 20, // Changed from 30 to 10 seconds
+  timeLeft: 30, // Changed from 30 to 10 seconds
   lives: 3,
   entities: [],
   playerPosition: { x: 400, y: 200 },

@@ -1,4 +1,4 @@
-## Game Tcha - Interactive CAPTCHA System
+## Game   - Interactive CAPTCHA System
 
 Game Tcha is a modern, interactive CAPTCHA system that verifies human users through gameplay instead of traditional text recognition.
 
@@ -58,4 +58,4 @@ The system uses multiple factors to verify human players:
 - Movement variance analysis
 - Direction change detection
 - Response time patterns
-- Action sequence evaluation
+- Action sequence evaluation   

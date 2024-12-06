@@ -1,11 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { GameState, PlayerAction, VerificationStatus } from '../types';
 import { analyzePlayerBehavior } from '../utils/verification';
 import { updateGameEntities, spawnEnemy, createBullet } from '../utils/gameLogic';
 import { checkCollisions } from '../utils/collisionDetection';
+import { setSharedVariable, getSharedVariable } from "../../../AppContext";
+import { useNavigate } from "react-router-dom";
 
-const INITIAL_STATE = {
+const INITIAL_STATE: GameState = {
   score: 0,
-  timeLeft: 20, // Changed from 30 to 10 seconds
+  timeLeft: 20,
   lives: 3,
   entities: [],
   playerPosition: { x: 400, y: 200 },
@@ -13,21 +16,29 @@ const INITIAL_STATE = {
 };
 
 export const useGameState = () => {
-  const [gameState, setGameState] = useState(INITIAL_STATE);
-  const [verificationStatus, setVerificationStatus] = useState('idle');
-  const playerActionsRef = useRef([]);
-  const gameLoopRef = useRef();
-  const spawnLoopRef = useRef();
+  const [gameState, setGameState] = useState<GameState>(INITIAL_STATE);
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
+  const playerActionsRef = useRef<PlayerAction[]>([]);
+  const gameLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const spawnLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigate = useNavigate();
 
+  // Game loop 
   useEffect(() => {
     if (!gameState.isActive) return;
 
     const updateGame = () => {
       setGameState(prevState => {
+        // Update entities positions
         const updatedState = updateGameEntities(prevState);
+        
+        // Check collisions
         const collisionResult = checkCollisions(updatedState);
+        
+        // Update time
         const newTimeLeft = Math.max(0, prevState.timeLeft - 0.1);
         
+        // Check game over conditions
         if (collisionResult.lives <= 0 || newTimeLeft <= 0) {
           endGame();
           return prevState;
@@ -49,7 +60,7 @@ export const useGameState = () => {
         ...prevState,
         entities: [...prevState.entities, spawnEnemy(prevState)]
       }));
-    }, 1500); // Slightly faster enemy spawning for shorter game
+    }, 2000);
 
     return () => {
       if (gameLoopRef.current) clearInterval(gameLoopRef.current);
@@ -57,7 +68,7 @@ export const useGameState = () => {
     };
   }, [gameState.isActive]);
 
-  const handlePlayerAction = useCallback(action => {
+  const handlePlayerAction = useCallback((action: PlayerAction) => {
     playerActionsRef.current.push(action);
     
     setGameState(prevState => {
@@ -89,10 +100,19 @@ export const useGameState = () => {
     setGameState(prev => ({ ...prev, isActive: false }));
     setVerificationStatus('verifying');
     
-    setTimeout(async () => {
-      const isHuman = await analyzePlayerBehavior(playerActionsRef.current);
-      setVerificationStatus(isHuman ? 'success' : 'failure');
-    }, 1000);
+    // Ensure there are enough actions before analyzing
+    if (playerActionsRef.current.length < 10) {
+      console.log("Not enough actions to analyze");
+      setVerificationStatus('failure');
+      return;
+    }
+
+    console.log("Actions for verification: ", playerActionsRef.current);
+
+    const isHuman = await analyzePlayerBehavior(playerActionsRef.current);
+    console.log("isHuman", isHuman);
+
+    setVerificationStatus(isHuman ? 'success' : 'failure');
   }, []);
 
   const resetGame = useCallback(() => {

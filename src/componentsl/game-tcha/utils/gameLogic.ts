@@ -1,3 +1,5 @@
+import { Entity, GameState } from '../types';
+
 const GAME_CONFIG = {
   SPAWN_INTERVAL: 1000,
   ENEMY_SPEED: 2,
@@ -6,7 +8,7 @@ const GAME_CONFIG = {
   POINTS_PER_KILL: 10
 };
 
-export const updateGameEntities = (state) => {
+export const updateGameEntities = (state: GameState): GameState => {
   const updatedEntities = state.entities
     .map(updateEntityPosition)
     .filter(isEntityInBounds);
@@ -17,7 +19,7 @@ export const updateGameEntities = (state) => {
   };
 };
 
-export const spawnEnemy = (state) => ({
+export const spawnEnemy = (state: GameState): Entity => ({
   id: Math.random().toString(36).substr(2, 9),
   type: 'enemy',
   x: Math.random() * 800,
@@ -28,7 +30,7 @@ export const spawnEnemy = (state) => ({
   }
 });
 
-export const createBullet = (playerX, playerY) => ({
+export const createBullet = (playerX: number, playerY: number): Entity => ({
   id: Math.random().toString(36).substr(2, 9),
   type: 'bullet',
   x: playerX,
@@ -39,12 +41,12 @@ export const createBullet = (playerX, playerY) => ({
   }
 });
 
-const updateEntityPosition = (entity) => ({
+const updateEntityPosition = (entity: Entity): Entity => ({
   ...entity,
   x: entity.x + entity.velocity.x,
   y: entity.y + entity.velocity.y
 });
 
-const isEntityInBounds = (entity) => {
+const isEntityInBounds = (entity: Entity): boolean => {
   return entity.x >= 0 && entity.x <= 800 && entity.y >= 0 && entity.y <= 400;
 };

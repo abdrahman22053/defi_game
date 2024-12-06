@@ -13,12 +13,14 @@ const INITIAL_STATE: GameState = {
   isActive: false
 };
 
+ 
 export const useGameState = () => {
   const [gameState, setGameState] = useState<GameState>(INITIAL_STATE);
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
   const playerActionsRef = useRef<PlayerAction[]>([]);
-  const gameLoopRef = useRef<NodeJS.Timeout>();
-  const spawnLoopRef = useRef<NodeJS.Timeout>();
+  const gameLoopRef = useRef<number | null>(null);
+  const spawnLoopRef = useRef<number | null>(null);
+  
 
   // Game loop
   useEffect(() => {

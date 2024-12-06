@@ -12,7 +12,7 @@ const Game: React.FC = () => {
   
   // Use refs to avoid unnecessary re-renders
   const gameAreaRef = useRef<HTMLDivElement>(null);
-  const collisionCheckRef = useRef<NodeJS.Timeout>();
+  const collisionCheckRef = useRef<number | null>(null);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {

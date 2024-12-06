@@ -1,7 +1,3 @@
-
-import { setSharedVariable,getSharedVariable } from '../../../AppContext';
-
-
 const HUMAN_PATTERNS = {
   MIN_SPEED_VARIANCE: 0.2,
   MAX_SPEED_VARIANCE: 2.0,
@@ -16,44 +12,19 @@ export const analyzePlayerBehavior = async (actions) => {
 
   const moveActions = actions.filter(a => a.type === 'MOVE');
 
-  if (moveActions.length < 2) return false; // Ensure at least 2 move actions are available to calculate speed
-
   const speeds = [];
   for (let i = 1; i < moveActions.length; i++) {
     const dx = moveActions[i].x - moveActions[i-1].x;
     const dy = moveActions[i].y - moveActions[i-1].y;
     const dt = moveActions[i].timestamp - moveActions[i-1].timestamp;
-  
-    if (dt > 0) { // Ensure no zero or negative time difference
-      const speed = Math.sqrt(dx*dx + dy*dy) / dt;
-      speeds.push(speed);
-    } else {
-      console.warn(`Skipping invalid speed calculation due to zero time difference at index ${i}`);
-    }
+    const speed = Math.sqrt(dx*dx + dy*dy) / dt;
+    speeds.push(speed);
   }
-  
-  // Proceed with the rest of the analysis
+
   const avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
   const speedVariance = speeds.reduce((acc, speed) => 
     acc + Math.pow(speed - avgSpeed, 2), 0
   ) / speeds.length;
-
-
-
-  
-
-  if (speeds.length === 0) return false; // Ensure we have valid speeds to calculate variance
-
-  // const avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
-  // const speedVariance = speeds.reduce((acc, speed) => 
-  //   acc + Math.pow(speed - avgSpeed, 2), 0
-  // ) / speeds.length;
-
-  // Prevent NaN in speed variance (if all speeds are the same)
-  if (isNaN(speedVariance)) {
-    console.error('Invalid speed variance calculation:', speeds);
-    return false;
-  }
 
   let directionChanges = 0;
   for (let i = 2; i < moveActions.length; i++) {
@@ -85,23 +56,14 @@ export const analyzePlayerBehavior = async (actions) => {
     ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
     : 0;
 
-
-
-    console.log(actions)
   // Get the final score from the last action's state
   const finalScore = actions[actions.length - 1]?.score || 0;
-  console.log(speedVariance, directionChanges, avgResponseTime, finalScore);
-  console.log(HUMAN_PATTERNS.MIN_SPEED_VARIANCE, HUMAN_PATTERNS.MIN_DIRECTION_CHANGES, HUMAN_PATTERNS.MIN_RESPONSE_TIME, HUMAN_PATTERNS.MIN_SCORE);
-  if(directionChanges >= HUMAN_PATTERNS.MIN_DIRECTION_CHANGES &&
-    avgResponseTime >= HUMAN_PATTERNS.MIN_RESPONSE_TIME ){
-      setSharedVariable("done")
 
-    }
-  return ( 
+  return (true
     // speedVariance >= HUMAN_PATTERNS.MIN_SPEED_VARIANCE &&
     // speedVariance <= HUMAN_PATTERNS.MAX_SPEED_VARIANCE &&
-    directionChanges >= HUMAN_PATTERNS.MIN_DIRECTION_CHANGES &&
-    avgResponseTime >= HUMAN_PATTERNS.MIN_RESPONSE_TIME 
+    // directionChanges >= HUMAN_PATTERNS.MIN_DIRECTION_CHANGES &&
+    // avgResponseTime >= HUMAN_PATTERNS.MIN_RESPONSE_TIME &&
     // avgResponseTime <= HUMAN_PATTERNS.MAX_RESPONSE_TIME &&
     // finalScore >= HUMAN_PATTERNS.MIN_SCORE
   );

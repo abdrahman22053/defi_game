@@ -1,5 +1,8 @@
 
-import { setSharedVariable,getSharedVariable } from '../../../AppContext';
+import { setSharedVariable,getSharedVariable } from "../../../AppContext";
+
+
+
 
 
 const HUMAN_PATTERNS = {
@@ -8,7 +11,7 @@ const HUMAN_PATTERNS = {
   MIN_DIRECTION_CHANGES: 3, // Reduced for shorter game
   MIN_RESPONSE_TIME: 150,
   MAX_RESPONSE_TIME: 800,
-  MIN_SCORE: 10 // Added minimum score requirement
+  MIN_SCORE: 3// Added minimum score requirement
 };
 
 export const analyzePlayerBehavior = async (actions) => {
@@ -16,44 +19,19 @@ export const analyzePlayerBehavior = async (actions) => {
 
   const moveActions = actions.filter(a => a.type === 'MOVE');
 
-  if (moveActions.length < 2) return false; // Ensure at least 2 move actions are available to calculate speed
-
   const speeds = [];
   for (let i = 1; i < moveActions.length; i++) {
     const dx = moveActions[i].x - moveActions[i-1].x;
     const dy = moveActions[i].y - moveActions[i-1].y;
     const dt = moveActions[i].timestamp - moveActions[i-1].timestamp;
-  
-    if (dt > 0) { // Ensure no zero or negative time difference
-      const speed = Math.sqrt(dx*dx + dy*dy) / dt;
-      speeds.push(speed);
-    } else {
-      console.warn(`Skipping invalid speed calculation due to zero time difference at index ${i}`);
-    }
+    const speed = Math.sqrt(dx*dx + dy*dy) / dt;
+    speeds.push(speed);
   }
-  
-  // Proceed with the rest of the analysis
+
   const avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
   const speedVariance = speeds.reduce((acc, speed) => 
     acc + Math.pow(speed - avgSpeed, 2), 0
   ) / speeds.length;
-
-
-
-  
-
-  if (speeds.length === 0) return false; // Ensure we have valid speeds to calculate variance
-
-  // const avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
-  // const speedVariance = speeds.reduce((acc, speed) => 
-  //   acc + Math.pow(speed - avgSpeed, 2), 0
-  // ) / speeds.length;
-
-  // Prevent NaN in speed variance (if all speeds are the same)
-  if (isNaN(speedVariance)) {
-    console.error('Invalid speed variance calculation:', speeds);
-    return false;
-  }
 
   let directionChanges = 0;
   for (let i = 2; i < moveActions.length; i++) {
@@ -85,24 +63,52 @@ export const analyzePlayerBehavior = async (actions) => {
     ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
     : 0;
 
-
-
-    console.log(actions)
   // Get the final score from the last action's state
   const finalScore = actions[actions.length - 1]?.score || 0;
-  console.log(speedVariance, directionChanges, avgResponseTime, finalScore);
-  console.log(HUMAN_PATTERNS.MIN_SPEED_VARIANCE, HUMAN_PATTERNS.MIN_DIRECTION_CHANGES, HUMAN_PATTERNS.MIN_RESPONSE_TIME, HUMAN_PATTERNS.MIN_SCORE);
-  if(directionChanges >= HUMAN_PATTERNS.MIN_DIRECTION_CHANGES &&
-    avgResponseTime >= HUMAN_PATTERNS.MIN_RESPONSE_TIME ){
-      setSharedVariable("done")
+  // setSharedVariable("lkskchjdkh")
 
-    }
-  return ( 
-    // speedVariance >= HUMAN_PATTERNS.MIN_SPEED_VARIANCE &&
-    // speedVariance <= HUMAN_PATTERNS.MAX_SPEED_VARIANCE &&
+  return (
+    speedVariance >= HUMAN_PATTERNS.MIN_SPEED_VARIANCE &&
+    speedVariance <= HUMAN_PATTERNS.MAX_SPEED_VARIANCE &&
     directionChanges >= HUMAN_PATTERNS.MIN_DIRECTION_CHANGES &&
-    avgResponseTime >= HUMAN_PATTERNS.MIN_RESPONSE_TIME 
-    // avgResponseTime <= HUMAN_PATTERNS.MAX_RESPONSE_TIME &&
-    // finalScore >= HUMAN_PATTERNS.MIN_SCORE
+    // avgResponseTime >= HUMAN_PATTERNS.MIN_RESPONSE_TIME &&
+    avgResponseTime <= HUMAN_PATTERNS.MAX_RESPONSE_TIME &&
+    finalScore >= HUMAN_PATTERNS.MIN_SCORE
   );
 };
+
+
+
+
+
+// const HUMAN_PATTERNS = {
+//   MIN_SPEED: 0.1, // Vitesse minimale raisonnable
+//   MAX_SPEED: 2.0, // Vitesse maximale raisonnable
+//   MIN_ACTIONS: 5  // Nombre minimal d'actions
+// };
+
+// export const analyzePlayerBehavior = async (actions) => {
+//   // Vérifier si le joueur a effectué suffisamment d'actions
+//   if (actions.length < HUMAN_PATTERNS.MIN_ACTIONS) return false;
+
+//   // Filtrer les actions de type MOVE
+//   const moveActions = actions.filter(a => a.type === 'MOVE');
+
+//   if (moveActions.length < 2) return false; // Nécessaire pour calculer une vitesse
+
+//   // Calcul des vitesses
+//   const speeds = [];
+//   for (let i = 1; i < moveActions.length; i++) {
+//     const dx = moveActions[i].x - moveActions[i-1].x;
+//     const dy = moveActions[i].y - moveActions[i-1].y;
+//     const dt = moveActions[i].timestamp - moveActions[i-1].timestamp;
+//     const speed = Math.sqrt(dx * dx + dy * dy) / dt;
+//     speeds.push(speed);
+//   }
+
+//   // Calcul de la vitesse moyenne
+//   const avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+
+//   // Valider si la vitesse moyenne est dans une plage raisonnable
+//   return avgSpeed >= HUMAN_PATTERNS.MIN_SPEED && avgSpeed <= HUMAN_PATTERNS.MAX_SPEED;
+// };
